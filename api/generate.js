@@ -24,7 +24,9 @@ export default async function handler(req, res) {
     const response = await fetch(`https://queue.fal.run/${selectedModel}`, {
       method: 'POST', headers: headers(), body: JSON.stringify(input)
     });
-    const data = await response.json().catch(() => ({}));
+    const raw = await response.text();
+    let data = {};
+    try { data = raw ? JSON.parse(raw) : {}; } catch { data = { message: raw || 'Resposta inválida do fal.ai' }; }
     if (!response.ok) return json(res, response.status, {
       error: data.detail || data.message || data.error || `fal.ai respondeu HTTP ${response.status}`,
       details: data

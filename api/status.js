@@ -7,7 +7,9 @@ export default async function handler(req, res) {
     const model = safeModel(String(req.query.model || ''));
     if (!id) return json(res, 400, { error: 'ID da tarefa obrigatório.' });
     const response = await fetch(`https://queue.fal.run/${model}/requests/${encodeURIComponent(id)}/status`, { headers: headers() });
-    const data = await response.json().catch(() => ({}));
+    const raw = await response.text();
+    let data = {};
+    try { data = raw ? JSON.parse(raw) : {}; } catch { data = { message: raw || 'Resposta inválida do fal.ai' }; }
     if (!response.ok) return json(res, response.status, { error: data.detail || data.message || data.error || `HTTP ${response.status}` });
     return json(res, 200, data);
   } catch (error) {
